@@ -1,0 +1,58 @@
+AWL Lightsail Udacity-Project-Glen-Bland
+networking - static IP - bind to above instance as
+Udacity-Project-IP 52.2.70.241
+LightsailDefaultKey-us-east-1.pem
+
+
+
+
+from aws terminal as ubuntu (root):
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get autoremove
+sudo apt-get install finger
+sudo adduser --home /home/student --shell /bin/bash --ingroup 
+admin student
+sudo adduser --home /home/grader --shell /bin/bash --ingroup 
+admin grader
+sudo touch /etc/sudoers.d/student
+sudo nano /etc/sudoers.d/student
+add the following line:
+student ALL=(ALL) NOPASSWD:ALL
+ctrl o (write file/save) enter to save as name given
+ctrl x (exit)
+sudo cp /etc/sudoers.d/student /etc/sudoers.d/grader
+sudo nano /etc/sudoers.d/grader
+change student to grader
+ctrl o (write file/save) enter to save as name given
+ctrl x (exit)
+
+
+
+from local terminal:
+
+ssh-keygen
+
+Your public key has been saved in /c/Users/gbland/.ssh/privateKey.pub.
+no passphrase.
+The key fingerprint is:
+SHA256:mtX0LJDBDXcmFDVsINt+14FIsOt19G5KnAaSOgTJDL8 gbland@8DMSR12
+The key's randomart image is:
++---[RSA 2048]----+
+|   .   .+=B*=    |
+|    = . .B+++..  |
+|     *  +.oo o . |
+|      o  =oo. ...|
+|     E .S++o+....|
+|      .+o oo+.o  |
+|      oo .   = o |
+|        .   o o  |
+|             .   |
++----[SHA256]-----+
+
+
+ssh ubuntu@52.2.70.241 -i LightsailDefaultKey-us-east-1.pem
+
+
+
