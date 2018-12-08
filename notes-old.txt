@@ -1,0 +1,160 @@
+AWL Lightsail Udacity-Project-Glen-Bland
+networking - static IP - bind to above instance as
+Udacity-Project-static-IP: 52.2.70.241
+private key made by lightsail: LightsailDefaultKey-us-east-1.pem
+
+
+
+
+from aws terminal as ubuntu (root):
+
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get autoremove
+$ sudo apt-get install finger
+$ sudo adduser --home /home/student --shell /bin/bash --ingroup admin student
+$ sudo adduser --home /home/grader --shell /bin/bash --ingroup admin grader
+$ sudo touch /etc/sudoers.d/student
+$ sudo nano /etc/sudoers.d/student
+add the following line:
+student ALL=(ALL) NOPASSWD:ALL
+ctrl o (write file/save) enter to save as name given
+ctrl x (exit)
+$ sudo cp /etc/sudoers.d/student /etc/sudoers.d/grader
+$ sudo nano /etc/sudoers.d/grader
+change student to grader
+ctrl o (write file/save) enter to save as name given
+ctrl x (exit)
+
+
+
+from local terminal:
+to login as ubuntu (root): (the key .pem file must be in same directory)
+$ ssh ubuntu@52.2.70.241 -i LightsailDefaultKey-us-east-1.pem
+
+to make a new key for student:
+$ ssh-keygen -b 1024 -f student -t dsa
+
+output:
+Your identification has been saved in student.
+Your public key has been saved in student.pub.
+The key fingerprint is:
+SHA256:uJid2uA4fFJOY7uXQBkp1qSvRybfed/DtXchRkJLVF0 gbland@8DMSR12
+The key's randomart image is:
++---[DSA 1024]----+
+|   o..    ..... E|
+|  o.+      o   . |
+| ... o    o .    |
+|   .o  .   o .   |
+|  ..+ . S   o    |
+|   **= +     o.. |
+| ..=*+*..  ......|
+|  ++++o. . .o . o|
+|  .++o.   . .. ..|
++----[SHA256]-----+
+
+
+to make a new key for grader:
+$ ssh-keygen -b 1024 -f grader -t dsa
+
+output:
+Your identification has been saved in grader.
+Your public key has been saved in grader.pub.
+The key fingerprint is:
+SHA256:1g+TzXviFDwnus52Tl/0kfMj9voROT6cCtgc2vPVkI0 gbland@8DMSR12
+The key's randomart image is:
++---[DSA 1024]----+
+|                 |
+|                 |
+|                 |
+|         . =   +o|
+|        S =.B EBo|
+|       .  *=.*ooX|
+|         o.**o.O=|
+|         ..=*+=.+|
+|         o+oo++o |
++----[SHA256]-----+
+
+Now, copy the file to the server’s tmp directory (from local terminal logged out - this command will log in to copy the file):
+
+$ scp -i LightsailDefaultKey-us-east-1.pem student.pub ubuntu@52.2.70.241:/tmp/
+
+Back on the server, copy this file to the home directory of the user we just created:
+
+$ sudo su student
+$ cd ~
+$ mkdir .ssh
+$ cat /tmp/student.pub > .ssh/authorized_keys
+$ chmod 600 .ssh/*
+$ chmod 700 .ssh/
+
+You should now be able to connect to the server using your newly created username without having to specify a password:
+
+$ ssh student@52.2.70.241
+
+student@52.2.70.241: Permission denied (publickey).
+
+new method:
+
+$ ssh-copy-id -i grader.pub grader@52.2.70.241
+
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "grader.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter
+out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+grader@52.2.70.241: Permission denied (publickey).
+
+troubleshooting:
+logged in as ubuntu:
+$ sudo nano /etc/ssh/sshd_config
+uncommented the line that says "PubkeyAuthentication yes"
+ctrl o (to save)
+ctrl x (to exit nano)
+reboot server through lightsail website.
+
+retry:
+$ ssh-copy-id -i grader.pub grader@52.2.70.241
+same result.
+
+$ ssh student@52.2.70.241 -i student -v
+OpenSSH_7.6p1, OpenSSL 1.0.2l  25 May 2017
+debug1: Reading configuration data /etc/ssh/ssh_config
+debug1: Connecting to 52.2.70.241 [52.2.70.241] port 22.
+debug1: Connection established.
+debug1: identity file student type 1
+debug1: key_load_public: No such file or directory
+debug1: identity file student-cert type -1
+debug1: Local version string SSH-2.0-OpenSSH_7.6
+debug1: Remote protocol version 2.0, remote software version OpenSSH_7.6p1 Ubunt
+u-4ubuntu0.1
+debug1: match: OpenSSH_7.6p1 Ubuntu-4ubuntu0.1 pat OpenSSH* compat 0x04000000
+debug1: Authenticating to 52.2.70.241:22 as 'student'
+debug1: SSH2_MSG_KEXINIT sent
+debug1: SSH2_MSG_KEXINIT received
+debug1: kex: algorithm: curve25519-sha256
+debug1: kex: host key algorithm: ecdsa-sha2-nistp256
+debug1: kex: server->client cipher: aes128-ctr MAC: umac-64-etm@openssh.com comp
+ression: none
+debug1: kex: client->server cipher: aes128-ctr MAC: umac-64-etm@openssh.com comp
+ression: none
+debug1: expecting SSH2_MSG_KEX_ECDH_REPLY
+debug1: Server host key: ecdsa-sha2-nistp256 SHA256:nu2TpitVSgaTfBwVFapn0uDsOtha
+JNLv+SykQb+06rk
+debug1: Host '52.2.70.241' is known and matches the ECDSA host key.
+debug1: Found key in /c/Users/gbland/.ssh/known_hosts:3
+debug1: rekey after 4294967296 blocks
+debug1: SSH2_MSG_NEWKEYS sent
+debug1: expecting SSH2_MSG_NEWKEYS
+debug1: SSH2_MSG_NEWKEYS received
+debug1: rekey after 4294967296 blocks
+debug1: Skipping ssh-dss key student - not in PubkeyAcceptedKeyTypes
+debug1: SSH2_MSG_EXT_INFO received
+debug1: kex_input_ext_info: server-sig-algs=<ssh-ed25519,ssh-rsa,rsa-sha2-256,rs
+a-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521>
+debug1: SSH2_MSG_SERVICE_ACCEPT received
+debug1: Authentications that can continue: publickey
+debug1: Next authentication method: publickey
+debug1: No more authentication methods to try.
+student@52.2.70.241: Permission denied (publickey).
+
+deleted Lightsail instance - starting over.

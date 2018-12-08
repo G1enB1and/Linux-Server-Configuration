@@ -1,0 +1,71 @@
+to create a user:
+
+add user
+$ sudo adduser <username>
+switch to the root user
+$ sudo su
+add a password for that user
+$ passwd <username>
+
+
+to enable sudo for user:
+now add the user to sudoers list by running
+$ visudo
+search for [root ALL = (ALL) ALL]
+add [<username> ALL = (ALL) ALL] just below it.
+esc :wq to write and quit
+or you could use nano instead of visudo
+
+to switch to a user:
+$ su <username>
+
+to delete a user:
+$ sudo userdel -rf <username>
+
+Public and Private Keys for Users:
+
+switch to the user directory:
+$ cd /home/<username>/
+
+generate keys:
+$ ssh-keygen -b4096 -f <username> -t rsa
+
+make a .ssh folder inside the user folder:
+$ mkdir .ssh
+
+set permission for owner of file to read, write, and execute:
+$ chmod 700 .ssh
+
+store public key in authorized keys file:
+$ cat <username>.pub > .ssh/authorized_keys
+
+set permission for owner to read and write to the file:
+$ chmod 600 .ssh/authorized_keys
+
+-below section might need to chnage group name to ubuntu or admin or sudo instead of ec2-user.
+to set the owner to <username> and the group to ec2-user:
+$ sudo chown <username>:ec2-user .ssh
+
+to set the owner to <username> and the group to ec2-user:
+$ sudo chown <username>:ec2-user .ssh/authorized_keys
+
+to copy user:
+$ sudo cp <username> /home/ec2-user
+or
+$ sudo rsync -avr <username> /home/ec2-user/
+
+set permissions:
+$ sudo chmod 777 /home/ec2-user/<username>
+
+-- Using your local terminal --
+again, ec2-user may need to be "ubuntu" instead.
+
+to copy the key "<username>" from your AWS Server:
+$ scp -i <username.pem> ec2-user@<IP>:/home/ec2-user/<username> <username>
+-above line might need sudo-
+
+set permissions so than owner can read
+$ chmod 400 <username>
+
+to access aws server as this user:
+$ ssh -i <key_just_created> <username>@<IP>

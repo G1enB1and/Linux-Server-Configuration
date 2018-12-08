@@ -1,0 +1,171 @@
+AWL Lightsail Udacity-Ubuntu-512MB-Virginia-1
+networking - static IP - bind to above instance as
+Udacity-static-IP: 23.20.77.227
+private key made by lightsail: LightsailDefaultKey-us-east-1.pem
+saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
+
+$ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get autoremove
+$ sudo apt-get install finger
+$ sudo adduser --home /home/grader --shell /bin/bash --ingroup admin grader
+password: grader
+
+exit - try to log in as grader:
+
+$ ssh grader@23.20.77.227
+output: grader@23.20.77.227: Permission denied (publickey).
+
+log back in as ubuntu
+$ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
+
+switch to grader
+$ su grader
+
+$ sudo whoami
+root
+
+exit - try to log in as grader with same key as ubuntu:
+$ ssh grader@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
+output: grader@23.20.77.227: Permission denied (publickey).
+
+log back in as ubuntu
+$ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
+
+check sshd_config for PubkeyAuthentication yes
+$ sudo nano /etc/ssh/sshd_config
+"PubkeyAuthentication yes" was already set and uncommented.
+ctrl x (to exit nano)
+
+switch to the root user
+$ sudo su
+add a password for that user
+$ passwd <username>
+
+
+to enable sudo for user method 1:
+now add the user to sudoers list by running
+$ visudo
+search for "root ALL = (ALL) ALL"
+added "grader ALL = (ALL) ALL" just below it.
+write and quit
+
+
+to enable sudo for user method 2:
+$ sudo touch /etc/sudoers.d/grader
+$ sudo nano /etc/sudoers.d/grader
+add the following line:
+"student ALL=(ALL) ALL"
+write and quit
+
+switch to new user:
+$ su grader
+
+switch to the users home directory:
+$ cd /home/grader/
+
+generate keys:
+$ ssh-keygen -b4096 -f grader -t rsa
+password: grad3r
+
+make a .ssh folder inside the user folder:
+$ mkdir .ssh
+
+set permission for owner of file to read, write, and execute:
+$ chmod 700 .ssh
+
+store public key in authorized keys file:
+$ cat grader.pub > .ssh/authorized_keys
+
+set permission for owner to read and write to the file:
+$ chmod 600 .ssh/authorized_keys
+
+set the owner to grader and the group to admin:
+$ sudo chown grader:admin .ssh
+
+to set the owner to grader and the group to admin:
+$ sudo chown grader:admin .ssh/authorized_keys
+
+to copy user:
+sudo rsync -avr grader /home/ubuntu/
+
+set permissions:
+$ sudo chmod 777 /home/ubuntu/grader
+
+-- Using your local terminal --
+
+to copy the key "<username>" from your AWS Server:
+scp -i .ssh/LightsailDefaultKey-us-east-1.pem ubuntu@23.20.77.227:/home/ubuntu/grader .ssh/grader
+
+set permissions so than owner can read
+$ chmod 400 .ssh/grader
+
+to access aws server as this user:
+$ ssh -i .ssh/grader grader@23.20.77.227
+password: grad3r
+
+-LOGIN SUCCESSFUL!
+
+test sudo:
+$ sudo su
+[sudo] password for grader:
+grader
+
+-success!
+
+Forcing Key Based Authentication: (this was already set)
+
+edit sshd_config: 
+$ sudo nano /etc/ssh/sshd_config
+change "PasswordAuthentication yes" to no.
+write file and exit.
+restart to ssh service:
+$ sudo service ssh restart
+
+Remove password from grader: (this could have been done earlier when adding grader)
+$ sudo nano /etc/sudoers.d/grader
+change the following line from
+"grader ALL=(ALL) ALL" to "grader ALL=(ALL) NOPASSWD:ALL"
+write file and exit
+login as root:
+$ sudo su
+edit visudo:
+$ visudo
+change the following line from
+"grader ALL=(ALL) ALL" to "grader ALL=(ALL) NOPASSWD:ALL"
+write file and exit
+exit root:
+$ exit
+
+add custom TCP port 2200 in AWS Lightsail Networking settings for 23.20.77.227
+
+Configure the Uncomplicated Firewall (UFW) as follows:
+only allow incoming connections for SSH port 2200, HTTP port 80, and NTP port 123. (see steps below).
+make sure ufw is inactive before configuring it:
+$ sudo ufw status
+output: status: inactive
+set default to deny all incoming
+$ sudo ufw default deny incoming
+set default to allow all outgoing
+$ sudo ufw default allow outgoing
+allow ssh:
+$ sudo ufw allow ssh
+allow ssh on port 2200:
+$ sudo ufw allow 2200/tcp
+allow www
+$ sudo ufw allow www
+enable ufw
+$ sudo ufw enable
+check status
+$ sudo ufw status
+
+
+
+
+
+
+
+
+
+
