@@ -138,6 +138,8 @@ write file and exit
 exit root:
 $ exit
 
+-------------------------------------------------------------
+Change SSH port 22 to custom port 2200:
 add custom TCP port 2200 in AWS Lightsail Networking settings for 23.20.77.227
 
 Configure the Uncomplicated Firewall (UFW) as follows:
@@ -160,12 +162,99 @@ $ sudo ufw enable
 check status
 $ sudo ufw status
 
+$ ssh -i .ssh/grader grader@23.20.77.227 -p 2200
+
+output: ssh: connect to host 23.20.77.227 port 2200: Connection refused
+
+$ ssh -i .ssh/grader grader@23.20.77.227
+
+success
+
+Edit sshd_config
+
+$ sudo nano /etc/ssh/sshd_config
+added Port 2200 below Port 22
+write file and exit
+reboot server
+
+$ ssh -i .ssh/grader grader@23.20.77.227 -p 2200
+success!
+
+Edit sshd_config
+
+$ sudo nano /etc/ssh/sshd_config
+Remove Port 22
+write file and exit
+
+Remove SSH Port 22 from AWS Lightsail Networking settings.
+Reboot server
+
+$ sudo ufw allow ntp
+$ sudo ufw deny 22
+
+$ ssh -i .ssh/grader grader@23.20.77.227 -p 2200
+Success!
+
+-----------------------------------------------------
+Install Apache
+$ sudo apt-get install apache2
+
+Now going to 23.20.77.227 in a browser shows the Apache2 landing page.
+
+Apache, by default, serves its files from the /var/www/html directory. If you explore this directory you will find a file called index.html
+
+------------------------------------------------------
+Install mod_wsgi to serve Python 2.7
+
+$ sudo apt-get install libapache2-mod-wsgi
+
+Excerpt from Udacity: "
+You then need to configure Apache to handle requests using the WSGI module. You’ll do this by editing the /etc/apache2/sites-enabled/000-default.conf file. This file tells Apache how to respond to requests, where to find the files for a particular site and much more. You can read up on everything this file can do within the Apache documentation.
+
+For now, add the following line at the end of the <VirtualHost *:80> block, right before the closing </VirtualHost> line: WSGIScriptAlias / /var/www/html/myapp.wsgi
+
+Finally, restart Apache with the sudo apache2ctl restart command.
+
+You might get a warning saying "Could not reliably determine the server's fully qualified domain name". If you do, don't worry about it. Check out this AskUbuntu thread for a discussion of the cause of this message."
+
+$ sudo nano /etc/apache2/sites-enabled/000-default.conf
+add "WSGIScriptAlias / /var/www/html/myapp.wsgi" just before "</VirtualHost>".
+write file and exit (ctrl o, enter, ctrl x)
+$ sudo apache2ctl restart
+
+Excerpt from Udacity: "WSGI is a specification that describes how a web server communicates with web applications. Most if not all Python web frameworks are WSGI compliant, including Flask and Django; but to quickly test if you have your Apache configuration correct you’ll write a very basic WSGI application.
+
+You just defined the name of the file you need to write within your Apache configuration by using the WSGIScriptAlias directive. Despite having the extension .wsgi, these are just Python applications. Create the /var/www/html/myapp.wsgi file using the command sudo nano /var/www/html/myapp.wsgi. Within this file, write the following application:"
+
+$ sudo nano /var/www/html/myapp.wsgi
+Paste in the following:
+"def application(environ, start_response):
+    status = '200 OK'
+    output = 'Hello Udacity!'
+
+    response_headers = [('Content-type', 'text/plain'), ('Content-Length', str(len(output)))]
+    start_response(status, response_headers)
+
+    return [output]"
+write file and exit (ctrl o, enter, crtl x)
+
+Excerpt from Udacity: "This application will simply print return Hello Udacity! along with the required HTTP response headers. After saving this file you can reload http://localhost:8080 to see your application run in all its glory!"
+
+Now going to 23.20.77.227 in a browser shows "Hellow Udacity!"
+
+------------------------------------------------------
+Install PostgreSQL
+
+$ sudo apt-get install postgresql
 
 
+-do not allow remote connections.
+-create a new database user named "catalog" that has limited permissions 
+ to the catalog application database.
 
 
+Install git
+deploy Catalog Project (I used Python 2.7) - change Port 8000 to 80
 
-
-
-
+Configure local timezone to UTC
 
