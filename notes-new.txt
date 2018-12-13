@@ -4,6 +4,8 @@ Udacity-static-IP: 23.20.77.227
 private key made by lightsail: LightsailDefaultKey-us-east-1.pem
 saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
 
+ssh -i .ssh/grader grader@23.20.77.227 -p 2200
+
 $ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
 $ sudo apt-get update
 $ sudo apt-get upgrade
@@ -252,8 +254,79 @@ $ sudo apt-get install postgresql
 -create a new database user named "catalog" that has limited permissions 
  to the catalog application database.
 
-
+------------------------------------------------------
 Install git
+
+$ sudo apt-get install git
+Configure git for first time use:
+$ git config --global user.name "G1enB1and"
+$ git config --global user.email "glen.bland.81@gmail.com"
+$ git config --global color.ui auto
+$ git config --global merge.conflictstyle diff3
+$ git config --list
+
+##Git & Code Editor  
+The last step of configuration is to get Git working with your code editor.
+Below are three of the most popular code editors. If you use a different editor,
+then do a quick search on Google for "associate X text editor with Git"
+(replace the X with the name of your code editor).  
+
+### Atom Editor Setup  
+`git config --global core.editor "atom --wait"`  
+
+### VSCode Setup  
+`git config --global core.editor "code --wait"`  
+
+### nano ?
+$ git config --global core.editor "nano --wait" ?
+
+nothing done for setting an editor yet. Going to see what happens without setting first.
+
+----------------------------------------------------------------
+
+## To clone an existing git repository:  
+`git clone` downloads a copy of an existing repository to the current working directory.  
+Current working directory must not already be a git repository.  
+
+Pass the url to an existing git repository by putting the url after `git clone`  
+like this: `git clone https://github.com/udacity/course-git-blog-project`  
+
+optionally, you can pass a new repository name after the url to clone an  
+existing repository to a new name. Like this:  
+`git clone https://github.com/udacity/course-git-blog-project new-repo-name`  
+
+Don't forget to `cd` into the newly cloned directory before attempting any  
+other git commands on it.  
+
+$ sudo mkdir /home/ubuntu/gitrepo
+$ cd /home/ubuntu/gitrepo
+$ sudo git clone https://github.com/G1enB1and/fullstack-nanodegree-vm catalog
+$ cd catalog
+$ cd vargrant
+
+$ cd /var/www/html
+$ sudo mv index.html apache2index.html
+$ sudo mv myapp.wsgi helloworld.wsgi
+$ sudo mv /home/ubuntu/gitrepo/catalog/vagrant/catalog /var/www/html
+
+---------------------------------------------------------
+
+$ sudo nano /etc/apache2/sites-enabled/000-default.conf
+edit "WSGIScriptAlias / /var/www/html/myapp.wsgi" to
+"WSGIScriptAlias / /var/www/html/catalog/application.wsgi".
+write file and exit (ctrl o, enter, ctrl x)
+$ sudo mv application.py application.wsgi
+$ sudo apache2ctl restart
+
+---------------------------------------------------------
+
+
+
+
+
+https://www.youtube.com/watch?v=x6SvecADw2M
+http://fosshelp.blogspot.com/2014/03/how-to-deploy-flask-application-with.html
+
 deploy Catalog Project (I used Python 2.7) - change Port 8000 to 80
 
 Configure local timezone to UTC
