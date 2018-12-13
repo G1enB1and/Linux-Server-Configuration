@@ -69,3 +69,84 @@ $ chmod 400 <username>
 
 to access aws server as this user:
 $ ssh -i <key_just_created> <username>@<IP>
+
+--------------------------------------------------------
+
+help from mentor about flask:
+
+How Can I verify that Flask is installed?
+
+Testing outside virtual environment (venv)
+Run:
+
+$ pip freeze|grep -i flask
+
+Should show something like:
+
+Flask==1.0.2
+Flask-Babel==0.11.2
+Flask-Dance==0.14.0
+Flask-HTTPAuth==3.2.3
+Flask-Limiter==1.0.1
+   (...)
+If not, then Install flask: $ sudo pip install Flask After this, change directory to sys.path.insert: $ cd /var/www/html/catalog/
+
+And run: $ python application.wsgi
+
+Any error? Please, paste the error here. And paste your file application.wsgi
+
+The statement
+
+from catalogx import app as application
+
+inside your application.wsgi file means:
+
+Expects catalogx to be a folder with __init__.py inside. Or a file named: catalogx.py like: /var/www/html/catalog/catalogx.py
+
+Next, run the following command to test if the installation is successful and the app is running:
+
+$ python __init__.py
+
+----------------------
+
+Leon D.
+
+Mentor
+
+5:20 AM
+
+Profile photo
+Virtual environment
+Note: virtual env is not a requirement to pass.
+
+Testing inside virtual environment (venv)
+Basically, it is the same procedure. First of all activate the virtual environment with the following command:
+
+$ source venv/bin/activate
+(venv)  catalog$ 
+From now on proceed as above to check up your installation. e.g.
+
+(venv)  catalog$ pip freeze |grep -i flask
+   (...)
+
+---------------------
+
+yes... the use virtualenv gives you the ability later to run more than a site on your machine.
+
+it is easy and not complicated... so go for it
+
+For installation:
+
+$ sudo pip install virtualenv
+
+Then create your virtualenv instance
+
+$ sudo virtualenv <somename>
+
+Then access that instance and pip install your packages inside of it, becareful not to use sudo when you do pip install, because otherwise you will install python packages outside of the virtualenv instance
+
+$ source <somename>/bin/activate
+
+(somename)$ pip install ....
+
+(edited)
