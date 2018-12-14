@@ -404,8 +404,25 @@ More information about this error may be available in the server error log.
 
 Apache/2.4.18 (Ubuntu) Server at 23.20.77.227 Port 80
 
+-------------------------------------------------------------
 
+https://stackoverflow.com/questions/42050982/flask-wsgi-no-module-named-flask
+says to 
+Edit /etc/apache2/sites-available/FlaskApp.conf
+(I only have 000-default.conf here, I used conf-enabled instead of sites-enabled. I also named it catalog.conf instead of FlaskApp.conf.
 
+Add the following two lines before the "WSGIScriptAlias" line:
+
+WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+WSGIProcessGroup FlaskApp
+
+or
+
+WSGIDaemonProcess FlaskApp python-home=/var/www/FlaskApp/venv/FlaskApp WSGIProcessGroup FlaskApp
+
+Restart Apache with "service apache2 restart"
+
+https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps
 
 
 
@@ -414,7 +431,133 @@ Apache/2.4.18 (Ubuntu) Server at 23.20.77.227 Port 80
 https://www.youtube.com/watch?v=x6SvecADw2M
 http://fosshelp.blogspot.com/2014/03/how-to-deploy-flask-application-with.html
 
-deploy Catalog Project (I used Python 2.7) - change Port 8000 to 80
+----------------------------------------------------------
+$ sudo mv /var/www/html/catalog /var/www/FlaskApp
+$ sudo nano application.wsgi
+change to:
+
+import os
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/FlaskApp/")
+from catalog import app as application
+application.run()
+
+$ sudo nano /etc/apache2/conf-enabled/catalog.conf
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess catalog
+                WSGIScriptAlias / /var/www/FlaskApp/application.wsgi
+                <Directory /var/www/FlaskApp/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+$ cd /etc/apache2/sites-enabled/
+$ sudo touch catalog.conf
+$ sudo nano catalog.conf
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess catalog
+                WSGIScriptAlias / /var/www/FlaskApp/application.wsgi
+                <Directory /var/www/FlaskApp/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+
+$ sudo nano /etc/apache2/sites-enabled/000-default.conf
+changed
+WSGIScriptAlias / /var/www/FlaskApp/application.wsgi
+
+-------------------------------------------------------------
+Setup venv virtual environment:
+
+$ cd /var/www/FlaskApp
+
+$ sudo pip install virtualenv
+$ sudo virtualenv venv
+venv can be replaced with any name
+$ source venv/bin/activate
+$ sudo pip install Flask
+
+--------------------------------------------------------------
+
+##Virtualenv Settings ??? - not added yet. don't understand
+
+activate_this = '/var/www/FlaskApp/venv/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+
+$ sudo nano application.wsgi
+change to:
+
+import os
+import sys
+import logging
+
+logging.basicConfig(stream=sys.stderr)
+
+activate_this = '/var/www/FlaskApp/venv/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+sys.path.insert(0,"/var/www/FlaskApp/")
+
+from catalog import app as application
+application.run()
+
+----------------------------------------------------------
+$ sudo nano catalog.conf (in sites-enabled and conf-enabled)
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIProcessGroup FlaskApp
+                WSGIScriptAlias / /var/www/FlaskApp/application.wsgi
+                WSGIScriptReloading On
+                <Directory /var/www/FlaskApp/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+
+-------------------------------------------------------------
+
+root@ip-172-26-6-126:/etc/apache2/conf-enabled# service apache2 restart
+Job for apache2.service failed because the control process exited with error cod
+e. See "systemctl status apache2.service" and "journalctl -xe" for details.
+
+
+duplicate wsgi designation in catalog.conf.
+
+removed the copy in conf-enabled and kept the one in sites-enabled.
+This fixed the issue and allows apche2 service to restart.
+
+----------------------------------------------------------------
+
+now I am still getting internal server error
+
+
+
+
+
+
+deploy Catalog Project (I used Python 2.7) - change Port 8000 to 80 ? done, but might need to change back
 
 Configure local timezone to UTC
 

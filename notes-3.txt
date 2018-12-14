@@ -155,7 +155,6 @@ The flask app (project.py) and the wsgi file (items-catalog.wsgi) are located in
 /var/www/flaskApp/items-catalog/
 
 This is my wsgi file:
-
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
