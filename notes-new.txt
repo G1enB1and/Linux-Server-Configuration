@@ -315,11 +315,98 @@ $ sudo nano /etc/apache2/sites-enabled/000-default.conf
 edit "WSGIScriptAlias / /var/www/html/myapp.wsgi" to
 "WSGIScriptAlias / /var/www/html/catalog/application.wsgi".
 write file and exit (ctrl o, enter, ctrl x)
-$ sudo mv application.py application.wsgi
+$ sudo mv application.py catalog.py
 $ sudo apache2ctl restart
+$ sudo touch /var/www/html/catalog/application.wsgi
+$ sudo nano /var/www/html/catalog/application.wsgi
+
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/html/catalog/")
+from catalog import app as application
+application.run()
+
+write file and exit (ctrl o, enter, ctrl x)
+
+$ cd /etc/apache2/conf-enabled/
+$ sudo touch catalog.conf
+$ sudo nano catalog.conf
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess catalog
+                WSGIScriptAlias / /var/www/html/catalog/application.wsgi
+                <Directory /var/www/html/catalog/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/html/catalog/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+
+write file and exit (ctrl o, enter, ctrl x)
+
+$ sudo nano /etc/apache2/apache2.conf
+add the following line if it's not already there: (in my case it was already there)
+IncludeOptional conf-enabled/*.conf
+
+write file and exit (ctrl o, enter, ctrl x)
+
+$ sudo service apache2 restart
 
 ---------------------------------------------------------
-flask-restfull
+
+$ cd /var/www/html/catalog/
+$ sudo apt install python-pip
+$ pip install Flask
+
+To check installation:
+$ pip freeze|grep -i flask
+output: Flask==1.0.2
+
+---------------------------------------------------------
+Test application:
+$ python application.wsgi
+ImportError: No module named sqlalchemy
+
+$ pip install sqlalchemy
+
+Test application:
+$ python application.wsgi
+ImportError: No module named oauth2client.client
+
+$ pip install oath2client
+
+Test application:
+$ python application.wsgi
+ImportError: No module named requests
+
+$ pip install requests
+
+-----------------------------------------------------------
+
+Test application:
+$ python application.wsgi
+ 
+application running...
+
+browsing to 23.20.77.227 and 23.20.77.227:8000 both give error:
+
+Internal Server Error
+The server encountered an internal error or misconfiguration and was unable to complete your request.
+
+Please contact the server administrator at glen@glenbland.com to inform them of the time this error occurred, and the actions you performed just before this error.
+
+More information about this error may be available in the server error log.
+
+Apache/2.4.18 (Ubuntu) Server at 23.20.77.227 Port 80
+
+
+
+
 
 
 

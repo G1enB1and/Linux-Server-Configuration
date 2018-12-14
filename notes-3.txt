@@ -113,9 +113,6 @@ Leon D.
 
 Mentor
 
-5:20 AM
-
-Profile photo
 Virtual environment
 Note: virtual env is not a requirement to pass.
 
@@ -150,3 +147,53 @@ $ source <somename>/bin/activate
 (somename)$ pip install ....
 
 (edited)
+
+-----------------------
+
+The flask app (project.py) and the wsgi file (items-catalog.wsgi) are located inside
+
+/var/www/flaskApp/items-catalog/
+
+This is my wsgi file:
+
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/flaskApp/items-catalog/")
+from project import app as application
+application.secret_key = application.renderToken(32)
+application.run()
+
+-----------------------
+
+My apache2 Config file located at /etc/apache2/sites-enabled/items-catalog.conf contains
+
+<VirtualHost *:80>
+                ServerName 18.184.87.59
+                ServerAdmin ciscuypers@gmail.com
+                WSGIDaemonProcess items-catalog
+                WSGIScriptAlias / /var/www/flaskApp/items-catalog/items-catalog.wsgi
+                <Directory /var/www/flaskApp/items-catalog/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/flaskApp/items-catalog/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost> 
+
+--------------------------
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess catalog
+                WSGIScriptAlias / /var/www/html/catalog/application.wsgi
+                <Directory /var/www/html/catalog/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/html/catalog/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
