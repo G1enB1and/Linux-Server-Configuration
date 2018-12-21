@@ -196,3 +196,40 @@ My apache2 Config file located at /etc/apache2/sites-enabled/items-catalog.conf 
                 LogLevel warn
                 CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
 </VirtualHost>
+
+-----------------------------------------------------------
+
+sites-available vs sites-enabled
+Apache ignores sites-available (/etc/apache2/sites-available/) until you enable the site.
+
+When enabled it symlinks it in sites-enabled (/etc/apache2/sites-enabled/).
+
+The actual .conf files are stored in /etc/apache2/sites-available/.
+
+They only become active if they are linked (basically a shortchut) in the /etc/apache2/sites-enabled directory.
+
+This is what a2ensite does.
+
+Run the following command:
+
+$ sudo a2ensite catalog # To enable catalog site.
+
+After that, list the folders to see the changes: $ ls /etc/apache2/sites-enabled/
+
+and,
+
+$ ls /etc/apache2/sites-available/
+
+And every time you make such changes in sites-available, you need to reload apache to recognize the new configurations.
+
+$ sudo systemctl restart apache2
+
+or,
+
+$ sudo apache2ctl restart
+
+The idea here is that all your sites are defined by files in the sites-available folder.
+
+https://tutorials.ubuntu.com/tutorial/install-and-configure-apache#3
+
+--------------------------------------------------------------------
