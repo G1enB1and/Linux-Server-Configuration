@@ -5,6 +5,7 @@ private key made by lightsail: LightsailDefaultKey-us-east-1.pem
 saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
 
 ssh -i .ssh/grader grader@23.20.77.227 -p 2200
+grad3r
 
 $ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
 $ sudo apt-get update
@@ -552,12 +553,129 @@ This fixed the issue and allows apche2 service to restart.
 
 now I am still getting internal server error
 
+$ sudo mv sites-enabled/catalog.conf sites-available/catalog.conf
+
+Enable site
+$ sudo a2ensite catalog
+Restart server
+$ sudo systemctl restart apache2
+$ sudo apache2ctl restart
+
+set permissions
+sudo chmod -R 755 /var/www
+
+changed catalog.py file to run on port 8000 as it was before I changed it to 80 earlier.
+
+$ sudo ufw allow 8000
+
+added custom tcp port 8000 in aws
+rebooted.
+
+$ sudo a2dissite 000-default 
+$ sudo systemctl restart apache2
+
+-----------------------------------------------------
+
+$ ls -las /etc/apache2/sites-available/
+total 24
+4 drwxr-xr-x 2 root root 4096 Dec 26 15:18 .
+4 drwxr-xr-x 8 root root 4096 Dec 14 15:55 ..
+4 -rw-r--r-- 1 root root 1392 Dec 14 15:59 000-default.conf
+4 -rw-r--r-- 1 root root  716 Dec 14 18:13 catalog.conf
+8 -rw-r--r-- 1 root root 6338 Jun 11  2018 default-ssl.conf
+
+$ ls -las /etc/apache2/sites-enabled/
+total 8
+4 drwxr-xr-x 2 root root 4096 Dec 26 15:57 .
+4 drwxr-xr-x 8 root root 4096 Dec 14 15:55 ..
+0 lrwxrwxrwx 1 root root   31 Dec 26 15:19 catalog.conf -> ../sites-available/catalog.conf
 
 
+WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp:/var/w$/var/www/FlaskApp/venv/lib/python2.7/site-packages
+
+-----------------------------------------------------------------
+
+moved files from FlaskApp to FlaskApp/venv
+updated catalog.conf to point to FlaskApp/venv
+$ sudo python catalog.py
+
+--------------------  It works!!!!!  ----------------------------
+
+final catalog.conf in /etc/apache2/sites-available/ is as follows:
+
+<VirtualHost *:80>
+                ServerName 23.20.77.227
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIProcessGroup FlaskApp
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+                WSGIScriptReloading On
+                <Directory /var/www/FlaskApp/venv>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
 
 
+------------------------------------------------------------------
+Google Login link does not work:
+400. That’s an error.
 
-deploy Catalog Project (I used Python 2.7) - change Port 8000 to 80 ? done, but might need to change back
+Error: invalid_request
 
-Configure local timezone to UTC
+Permission denied to generate login hint for target domain.
+
+Request Details
+response_type=permission id_token code
+scope=openid email
+openid.realm=
+prompt=consent
+access_type=offline
+include_granted_scopes=true
+redirect_uri=storagerelay://http/23.20.77.227:8000?id=auth231985
+client_id=595888207696-saiiv3l4m0obuhj79al9liojp2r5eea9.apps.googleusercontent.com
+ss_domain=http://23.20.77.227:8000
+gsiwebsdk=shim
+
+
+---------------------------------------------------------------
+changed catalog.conf
+
+<VirtualHost *:80>
+                ProxyPreserveHost On
+                ProxyRequests Off
+                ServerName www.catalog.glenbland.com
+                ServerAlias catalog.glenbland.com
+                ProxyPass / http://23.20.77.227:8000/
+                ProxyPassReverse / http://23.20.77.227:8000/
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIProcessGroup FlaskApp
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+                WSGIScriptReloading On
+                <Directory /var/www/FlaskApp/venv>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+
+
+$ sudo a2enmod proxy && sudo
+ a2enmod proxy_http && sudo service apache2 restart
+
+Enabling module proxy.
+To activate the new configuration, you need to run:
+  service apache2 restart
+Considering dependency proxy for proxy_http:
+Module proxy already enabled
+Enabling module proxy_http.
+To activate the new configuration, you need to run:
+  service apache2 restart
+grader@ip-172-26-6-126:/etc/apache2/sites-available$
 

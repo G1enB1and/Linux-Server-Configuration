@@ -233,3 +233,13 @@ The idea here is that all your sites are defined by files in the sites-available
 https://tutorials.ubuntu.com/tutorial/install-and-configure-apache#3
 
 --------------------------------------------------------------------
+
+Run the following commands: 
+$ sudo a2dissite 000-default 
+$ sudo systemctl restart apache2
+To disable the default Apache virtual host (000-default).
+
+After that, list the folders to see the changes: 
+$ ls -las /etc/apache2/sites-enabled/
+$ ls -las /etc/apache2/sites-available/
+
