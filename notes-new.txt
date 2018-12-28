@@ -1,4 +1,4 @@
-AWL Lightsail Udacity-Ubuntu-512MB-Virginia-1
+AWS Lightsail Udacity-Ubuntu-512MB-Virginia-1
 networking - static IP - bind to above instance as
 Udacity-static-IP: 23.20.77.227
 private key made by lightsail: LightsailDefaultKey-us-east-1.pem
@@ -6,6 +6,19 @@ saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
 
 ssh -i .ssh/grader grader@23.20.77.227 -p 2200
 grad3r
+
+I registered glenallin.com with Dreamhost,
+created a DNS Zone in AWS Lightsail,
+used the following Nameservers provided by my Lightsail DNS Zone:
+ns-493.awsdns-61.com
+ns-1865.awsdns-41.co.uk
+ns-1014.awsdns-62.net
+ns-1419.awsdns-49.org
+instead of the default nameservers in Dreamhost.
+Added a record in the lightsail dns records to point @.glenallin.com to Udacity-StaticIp-Virginia-1 (My Lightsail Instance)
+note that @. in the subdomain field means no subdomain, but rather the main domain glenallin.com.
+
+
 
 $ ssh ubuntu@23.20.77.227 -i .ssh/LightsailDefaultKey-us-east-1.pem
 $ sudo apt-get update
@@ -59,8 +72,8 @@ to enable sudo for user method 2:
 $ sudo touch /etc/sudoers.d/grader
 $ sudo nano /etc/sudoers.d/grader
 add the following line:
-"student ALL=(ALL) ALL"
-write and quit
+"grader ALL=(ALL) ALL"
+write and quit (ctrl o, enter, ctrl x)
 
 switch to new user:
 $ su grader
@@ -117,6 +130,8 @@ grader
 
 -success!
 
+------------------------------------------------------------------
+
 Forcing Key Based Authentication: (this was already set)
 
 edit sshd_config: 
@@ -125,6 +140,8 @@ change "PasswordAuthentication yes" to no.
 write file and exit.
 restart to ssh service:
 $ sudo service ssh restart
+
+---------------------------------------------------------------------
 
 Remove password from grader: (this could have been done earlier when adding grader)
 $ sudo nano /etc/sudoers.d/grader
@@ -647,8 +664,8 @@ changed catalog.conf
 <VirtualHost *:80>
                 ProxyPreserveHost On
                 ProxyRequests Off
-                ServerName www.catalog.glenbland.com
-                ServerAlias catalog.glenbland.com
+                ServerName www.glenallin.com
+                ServerAlias glenallin.com
                 ProxyPass / http://23.20.77.227:8000/
                 ProxyPassReverse / http://23.20.77.227:8000/
                 ServerAdmin glen@glenbland.com
@@ -677,5 +694,16 @@ Module proxy already enabled
 Enabling module proxy_http.
 To activate the new configuration, you need to run:
   service apache2 restart
+
 grader@ip-172-26-6-126:/etc/apache2/sites-available$
+
+this is also where I registered glenallin.com and created dns zone as described at top and updated google oauth credentials to include glenallin.com/login and glenallin.com/gconnect
+
+Google login now accepts credentials and does not give error, but login does not complete either.
+error log shows attempt to write a read-only database.
+
+$ sudo chmod 755 /var/www/FlaskApp/venv/
+$ sudo chmod 756 /var/www/FlaskApp/venv/catalog.db
+
+chown
 
