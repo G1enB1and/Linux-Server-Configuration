@@ -707,3 +707,21 @@ $ sudo chmod 756 /var/www/FlaskApp/venv/catalog.db
 
 chown
 
+---------------------------------------------------------------
+
+Login as postgres from root user (this is the PostgreSQL superuser)
+$ sudo su
+$ su - postgres
+
+create a new postgresql user named catalog 
+(disallow creating users -A and databases -D [allow would be -a -d])
+$ createuser catalog -A -D
+
+( -p would ask for password, but I have no password for the catalog user)
+
+
+
+
+
+
+
