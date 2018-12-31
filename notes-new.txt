@@ -719,6 +719,8 @@ $ createuser catalog -A -D
 
 ( -p would ask for password, but I have no password for the catalog user)
 
+might need to use the default user and group, which is www-data
+
 
 
 

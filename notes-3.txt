@@ -243,3 +243,27 @@ After that, list the folders to see the changes:
 $ ls -las /etc/apache2/sites-enabled/
 $ ls -las /etc/apache2/sites-available/
 
+---------------------------------------------------------------------
+
+new method to copy copy public key:
+
+You now need to configure your public key as an authorized host in your server. On the terminal that you opened on your own computer, print your public key to the screen:
+
+$ cat ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjw....F8Xv4f/0+7WT miguel@miguelspc
+This is going to be a very long sequence of characters, possibly spanning multiple lines. You need to copy this data to the clipboard, and then switch back to the terminal on your remote server, where you will issue these commands to store the public key:
+
+$ echo <paste-your-key-here> >> ~/.ssh/authorized_keys
+$ chmod 600 ~/.ssh/authorized_keys
+The password-less login should now be working. The idea is that ssh on your machine will identify itself to the server by performing a cryptographic operation that requires the private key. The server then verifies that the operation is valid using your public key.
+
+You can now log out of your ubuntu session, and then from your root session, and then try to login directly to the ubuntu account with:
+
+----------------------------------------------------------------------------
+
+/etc/ssh/sshd_config: Disable root logins.
+
+PermitRootLogin no
+
+-----------------------------------------------------------------------------
+
