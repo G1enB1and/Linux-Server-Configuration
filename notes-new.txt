@@ -6,6 +6,7 @@ saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
 
 ssh -i .ssh/grader grader@23.20.77.227 -p 2200
 grad3r
++ssh -i c/users/glen/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@23.20.77.227 -p 2200
 
 I registered glenallin.com with Dreamhost,
 created a DNS Zone in AWS Lightsail,
@@ -719,7 +720,35 @@ $ createuser catalog -A -D
 
 ( -p would ask for password, but I have no password for the catalog user)
 
+
++Run the psql program as the database owner or the postgres superuser
+$ psql
+
+---------------------------------------------------------------
+
+/var/lib/postgresql/9.5/main
+
+http://www.ntu.edu.sg/home/ehchua/programming/sql/PostgreSQL_GetStarted.html
+
+// Install PostgreSQL
+$ sudo apt-get install postgresql postgresql-contrib
+
+// Verify the installation
+$ dpkg --status postgresql
+Version: 9.5
+......
+$ whereis postgresql
+postgresql: /usr/lib/postgresql /etc/postgresql /usr/share/postgresql
+$ which psql     // psql is an interactive PostgreSQL client
+/usr/bin/psql
+$ ll /usr/bin/psql
+lrwxrwxrwx 1 root root 37 Jul 16 16:22 /usr/bin/psql -> ../share/postgresql-common/pg_wrapper*
+
+---------------------------------------------------------------
+
 might need to use the default user and group, which is www-data
+
+---------------------------------------------------------------
 
 
 
