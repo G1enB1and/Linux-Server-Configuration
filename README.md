@@ -368,6 +368,8 @@ Set Permissions
 $ sudo chmod -R 755 /var/www  
 $ sudo chmod 755 /var/www/FlaskApp/venv/  
 $ sudo chmod 756 /var/www/FlaskApp/venv/catalog.db  
+
+$ sudo chown www-data:www-data /var/www/FlaskApp/venv/catalog.db
   
 ----------------------------------------------------------------------  
   
@@ -395,3 +397,6 @@ my app.
   
 In the AWS Lightsail Networking tab under firewall I added
 custom tcp port 2200 and 8000 and removed ssh 22 (after setting up 2200)  
+  
+## License  
+MIT Licesne found [here](LICENSE.md)  
