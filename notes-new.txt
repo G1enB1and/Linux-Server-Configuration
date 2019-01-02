@@ -759,4 +759,168 @@ for some reason I had to reinstall flask, sqlalchemy, oauth2client, and requests
 BUT... I get service Unavailable if I close my terminal window. 
 I need to find a way to make catalog.py autostart and restart when server starts or restarts. 
 
+----------------------------------------------------------------
+
+import os
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/FlaskApp/")
+from catalog import app as application
+application.run()
+
+works.
+
+activate_this = '/var/www/FlaskApp/venv/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+does not work.
+-----------------------------------------------------------------
+sudo a2enconf catalog
+sudo /etc/init.d/apache2 restart
+
+source venv/bin/activate
+
+-------------------------------------------------------------------
+
+<VirtualHost *:80>
+    . . .
+
+    Alias /static /home/sammy/myproject/static
+    <Directory /home/sammy/myproject/static>
+        Require all granted
+    </Directory>
+
+    <Directory /home/sammy/myproject/myproject>
+        <Files catalog.py>
+            Require all granted
+        </Files>
+    </Directory>
+
+    WSGIDaemonProcess myproject python-home=/home/sammy/myproject/myprojectenv python-path=/home/sammy/myproject
+    WSGIProcessGroup myproject
+    WSGIScriptAlias / /home/sammy/myproject/myproject/catalog.py
+
+</VirtualHost>
+
+---------------------------------------------------------------------------------
+
+Wrapping Up Some Permissions Issues
+If you are using the SQLite database, which is the default used in this article, you need to allow the Apache process access to this file.
+
+To do so, the first step is to change the permissions so that the group owner of the database can read and write. The database file is called db.sqlite3 by default and it should be located in your base project directory:
+
+chmod 664 ~/myproject/db.sqlite3
+Afterwards, we need to give the group Apache runs under, the www-data group, group ownership of the file:
+
+sudo chown :www-data ~/myproject/db.sqlite3
+In order to write to the file, we also need to give the Apache group ownership over the database's parent directory:
+
+sudo chown :www-data ~/myproject
+We need to adjust through our firewall again. We no longer need port 8000 open since we are proxying through Apache, so we can remove that rule. We can then add an exception to allow traffic to the Apache process:
+
+sudo ufw delete allow 8000
+sudo ufw allow 'Apache Full'
+Check your Apache files to make sure you did not make any syntax errors:
+
+sudo apache2ctl configtest
+As long as the last line of output looks like this, your files are in good shape:
+
+Output
+. . .
+Syntax OK
+Once these steps are done, you are ready to restart the Apache service to implement the changes you made. Restart Apache by typing:
+
+sudo systemctl restart apache2
+
+
+-------------------------------------------------------------------------
+configure nameserver
+
+----------------------------------------------------------------------------
+
+Notice the new syntax “Require all granted” instead of the obsolete “Order allow,deny”, “Allow from all”. If you mistakenly use the obsolete syntax, you get “‘AH01630: client denied by server configuration” in the logs. The “Require all granted” is used since Apache 2.4.
+
+
+-----------------------------------------------------------------------------
+
+## /etc/apache2/sites-available/catalog.conf (from example)
+<VirtualHost *>
+ 		ServerName glenallin.com
+		WSGIDaemonProcess catalog user=ubuntu group=ubuntu threads=5
+		WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+		<Directory /var/www/FlaskApp/venv/>
+			WSGIProcessGroup catalog
+			WSGIApplicationGroup %{GLOBAL}
+			WSGIScriptReloading On
+			Require all granted
+		</Directory>
+</VirtualHost>
+
+
+## new edit (works) ------------------------changing *:80 to * fixed it!!!-----------
+<VirtualHost *>
+                ProxyPreserveHost On
+                ProxyRequests Off
+                ServerName www.glenallin.com
+                ServerAlias glenallin.com
+                ProxyPass / http://23.20.77.227:8000/
+                ProxyPassReverse / http://23.20.77.227:8000/
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess catalog user=ubuntu group=ubuntu threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+                <Directory /var/www/FlaskApp/venv>
+			WSGIProcessGroup catalog
+			WSGIApplicationGroup %{GLOBAL}
+			WSGIScriptReloading On
+                        Require all granted
+                </Directory>
+                ErrorLog /var/www/FlaskApp/venv/catalog-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/catalog-access.log combined
+</VirtualHost>
+
+## original
+<VirtualHost *:80>
+                ProxyPreserveHost On
+                ProxyRequests Off
+                ServerName www.glenallin.com
+                ServerAlias glenallin.com
+                ProxyPass / http://23.20.77.227:8000/
+                ProxyPassReverse / http://23.20.77.227:8000/
+                ServerAdmin glen@glenbland.com
+                WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIProcessGroup FlaskApp
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+                WSGIScriptReloading On
+                <Directory /var/www/FlaskApp/venv>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost>
+
+----------------------------------------------------------------------------------
+
+$ sudo ufw allow 'Apache Full'
+
+-----------------------------------------------------------------------------------
+##/var/www/flaskApp/venv/application.wsgi (added /venv/)
+import os
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/FlaskApp/venv/")
+from catalog import app as application
+application.run()
+----------------------------------------------------------------------------------
+
+Serving Flask app "catalog" (lazy loading)
+ * Environment: production
+   WARNING: Do not use the development server in a production environment.
+   Use a production WSGI server instead.
+
+
 
