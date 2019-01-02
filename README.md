@@ -189,6 +189,9 @@ $ sudo ufw allow www
 
 Allow port 8000 (for app)  
 $ sudo ufw allow 8000  
+
+Allow Apache to redirect from 80 to 8000  
+$ sudo ufw allow 'Apache Full'  
   
 Enable UFW 
 $ sudo ufw enable  
@@ -302,7 +305,7 @@ import os
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0,"/var/www/FlaskApp/")
+sys.path.insert(0,"/var/www/FlaskApp/venv")
 from catalog import app as application
 application.run()
   
@@ -315,25 +318,25 @@ $ cd /etc/apache2/sites-available/
 $ sudo touch catalog.conf  
 $ sudo nano catalog.conf  
   
-<VirtualHost *:80>
-                ProxyPreserveHost On
-                ProxyRequests Off
-                ServerName www.glenallin.com
-                ServerAlias glenallin.com
-                ProxyPass / http://23.20.77.227:8000/
-                ProxyPassReverse / http://23.20.77.227:8000/
-                ServerAdmin glen@glenbland.com
-                WSGIDaemonProcess FlaskApp python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
-                WSGIProcessGroup FlaskApp
-                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
-                WSGIScriptReloading On
-                <Directory /var/www/FlaskApp/venv>
-                        Order allow,deny
-                        Allow from all
-                </Directory>
-                ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
-                LogLevel warn
-                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+<VirtualHost *>  
+                ProxyPreserveHost On  
+                ProxyRequests Off  
+                ServerName www.glenallin.com  
+                ServerAlias glenallin.com  
+                ProxyPass / http://23.20.77.227:8000/  
+                ProxyPassReverse / http://23.20.77.227:8000/  
+                ServerAdmin glen@glenbland.com  
+                WSGIDaemonProcess catalog user=ubuntu group=ubuntu threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages  
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi  
+                <Directory /var/www/FlaskApp/venv>  
+					WSGIProcessGroup catalog  
+					WSGIApplicationGroup %{GLOBAL}  
+					WSGIScriptReloading On  
+					Require all granted  
+                </Directory>  
+                ErrorLog /var/www/FlaskApp/venv/catalog-error.log  
+                LogLevel warn  
+                CustomLog ${APACHE_LOG_DIR}/catalog-access.log combined  
 </VirtualHost>  
   
 Write file and exit (ctrl o, enter, ctrl x)  
@@ -352,6 +355,10 @@ Disable default site
 $ sudo a2dissite 000-default  
 $ sudo systemctl restart apache2  
   
+Check Apache files for any syntax errors:  
+$ sudo apache2ctl configtest  
+Syntax OK  
+  
 Restart server  
 $ sudo systemctl restart apache2  
 $ sudo apache2ctl restart  
@@ -364,6 +371,10 @@ $ sudo chmod 755 /var/www/FlaskApp/venv/
 $ sudo chmod 756 /var/www/FlaskApp/venv/catalog.db  
 
 $ sudo chown www-data:www-data /var/www/FlaskApp/venv/catalog.db
+  
+----------------------------------------------------------------------  
+  
+Web App is now fully functional and can be accessed by browsing to glenallin.com  
   
 ----------------------------------------------------------------------  
   
