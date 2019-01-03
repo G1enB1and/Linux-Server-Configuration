@@ -915,7 +915,7 @@ logging.basicConfig(stream=sys.stderr)
 sys.path.insert(0,"/var/www/FlaskApp/venv/")
 from catalog import app as application
 application.run()
-----------------------------------------------------------------------------------
+---------------------------------------------------------------------------
 
 Serving Flask app "catalog" (lazy loading)
  * Environment: production
@@ -924,4 +924,52 @@ Serving Flask app "catalog" (lazy loading)
 
 FIXED BY CHANGING <VIRTUALHOST *:80> TO <VIRTUALHOST *> !!!
 
+
+---------------------------------------------------------------------------
+
+Prevent login as root
+$ sudo nano /etc/ssh/sshd_config
+PermitRootLogin no
+
+----------------------------------------------------------------------------
+$ sudo /etc/init.d/apache2 restart
+
+$ sudo a2dismod proxy_http
+$ sudo a2dismod proxy
+$ sudo service apache2 restart
+
+sudo apache2ctl configtest
+$ sudo a2enmod proxy && sudo
+ a2enmod proxy_http && sudo service apache2 restart
+
+----------------------------------------------------------------------------
+$ tail -f /var/www/FlaskApp/venv/catalog-error.log
+
+[Wed Jan 02 23:46:48.911913 2019] [wsgi:error] [pid 2645:tid 140032792413952] 
+[remote 177.184.83.207:13299]     open('client_secrets.json', 'r').read())['web']['client_id']
+[Wed Jan 02 23:46:48.911927 2019] [wsgi:error] [pid 2645:tid 140032792413952] 
+[remote 177.184.83.207:13299] IOError: [Errno 2] No such file or directory: 'client_secrets.json'
+[Wed Jan 02 23:48:20.317536 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668] mod_wsgi (pid=2799): Target WSGI script '/var/www/FlaskApp/venv/application.wsgi' cannot be loaded as Python module.
+[Wed Jan 02 23:48:20.317574 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668] mod_wsgi (pid=2799): Exception occurred processing WSGIscript '/var/www/FlaskApp/venv/application.wsgi'.
+[Wed Jan 02 23:48:20.317592 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668] Traceback (most recent call last):
+[Wed Jan 02 23:48:20.317606 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668]   File "/var/www/FlaskApp/venv/application.wsgi", line 6, in <module>
+[Wed Jan 02 23:48:20.317646 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668]     from catalog import app as application
+[Wed Jan 02 23:48:20.317655 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668]   File "/var/www/FlaskApp/venv/catalog.py", line 29, in<module>
+[Wed Jan 02 23:48:20.317798 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668]     open('client_secrets.json', 'r').read())['web']['client_id']
+[Wed Jan 02 23:48:20.317817 2019] [wsgi:error] [pid 2799:tid 140456514791168] 
+[remote 12.69.190.13:668] IOError: [Errno 2] No such file or directory: 'client_secrets.json'
+
+------------------------------------------------------------------------------
+
+$ sudo chmod 775 /var/www/FlaskApp/venv/client_secrets.json
+$ sudo chown www-data:www-data /var/www/FlaskApp/venv/client_secrets.json
+$ sudo chmod 775 /var/www/FlaskApp/venv/catalog.db
+$ sudo chmod 777 /var/www/FlaskApp/venv/
 
