@@ -1,0 +1,59 @@
+ubuntu$ sudo apt-get install apache2
+ubuntu$ sudo apt-get install python-pip virtualenv
+ubuntu$ sudo su
+root$ cd /etc/apche2/sites-available
+root$ nano flask.conf
+
+<VirtualHost *:80>
+	serverName	flaskapp.com
+	WSGIScriptAlias / /var/www/flask/flask.wsgi
+	<Directory /var/www/flask>
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/error.log combined
+</VirtualHost>
+
+root$ apt-get install libapache2-mod-wsgi
+root$ cd /var/www
+root$ mkdir flask
+root$ cd flask
+root$ mkdir static templates
+root$ virtualenv venv
+root$ nano init.py
+
+from flask import Flask
+
+app = Flask (__name__)
+@app.route("/")
+def index():
+  return "hellow world"
+
+if __name__ == "__main__":
+  app.run()
+
+root$ pip install flask
+root@ip:/var/www/flask# python
+>>> import flask
+>>>
+root@ip:/var/www/flask# python init.py
+(test in browser) - working
+ctrl c to quit
+
+root@ip:/var/www/flask# nano flask.wsgi
+
+import sys
+sys.path.insert(0, "/var/www/flask/")
+
+from init import app as application
+
+root@ip:/var/www/flask# apt-get install a2enmod
+root@ip:/var/www/flask# a2ensite flask.conf
+root@ip:/var/www/flask# service apache2 reload
+root@ip:/var/www/flask# a2dissite 000-default.conf
+root@ip:/var/www/flask# service apache2 reload
+test in browser  - working
+
+

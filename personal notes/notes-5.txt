@@ -1,0 +1,36 @@
+$ virtualenv venv
+$ source venv/bin/activate
+# copy files
+# pip install -r requirements.txt
+
+by default gunicorn only listens to requests from localhost and on port 8000.
+The following command tells it to listen from the internet at large and on port 80.
+
+gunicorn hello:app --log-file - --bind 0.0.0.0:80
+
+
+
+Working with Virtual Environments
+Virtual environments have the advantage that they never install the required dependencies system wide so you have a better control over what is used where. If you want to use a virtual environment with mod_wsgi you have to modify your .wsgi file slightly.
+
+Add the following lines to the top of your .wsgi file:
+
+activate_this = '/path/to/env/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+
+
+
+Problem: application gives permission errors
+Probably caused by your application running as the wrong user. 
+Make sure the folders the application needs access to have the proper 
+privileges set and the application runs as the correct user 
+(user and group parameter to the WSGIDaemonProcess directive)
+
+
+
+
+https://umar-yusuf.blogspot.com/2018/02/deploying-python-flask-web-app-on.html
+
+https://askubuntu.com/questions/396654/how-to-run-the-python-program-in-the-background-in-ubuntu-machine
+

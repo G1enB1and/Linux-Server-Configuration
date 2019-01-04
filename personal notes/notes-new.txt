@@ -7,6 +7,7 @@ saved to C:\Users\gbland\.ssh\LightsailDefaultKey-us-east-1.pem
 ssh -i .ssh/grader grader@23.20.77.227 -p 2200
 grad3r
 ssh -i c/users/glen/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@23.20.77.227 -p 2200
+ssh -i .ssh/LightsailDefaultKey-us-east-1.pem ubuntu@23.20.77.227 -p 2200
 
 I registered glenallin.com with Dreamhost,
 created a DNS Zone in AWS Lightsail,
@@ -397,7 +398,7 @@ Test application:
 $ python application.wsgi
 ImportError: No module named oauth2client.client
 
-$ pip install oath2client
+$ pip install oauth2client
 
 Test application:
 $ python application.wsgi
@@ -506,10 +507,11 @@ Setup venv virtual environment:
 $ cd /var/www/FlaskApp
 
 $ sudo pip install virtualenv
-$ sudo virtualenv venv
+(don't use sudo with virtualenv venv or you won't be able to use pip within it)
+$ virtualenv venv
 venv can be replaced with any name
 $ source venv/bin/activate
-$ sudo pip install Flask
+$ pip install Flask
 
 --------------------------------------------------------------
 
@@ -862,12 +864,12 @@ Notice the new syntax “Require all granted” instead of the obsolete “Order allow
 <VirtualHost *>
                 ProxyPreserveHost On
                 ProxyRequests Off
-                ServerName www.glenallin.com
+                ServerName glenallin.com
                 ServerAlias glenallin.com
                 ProxyPass / http://23.20.77.227:8000/
                 ProxyPassReverse / http://23.20.77.227:8000/
                 ServerAdmin glen@glenbland.com
-                WSGIDaemonProcess catalog user=ubuntu group=ubuntu threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIDaemonProcess catalog user=www-data group=www-data threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
                 WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
                 <Directory /var/www/FlaskApp/venv>
 			WSGIProcessGroup catalog
@@ -973,3 +975,80 @@ $ sudo chown www-data:www-data /var/www/FlaskApp/venv/client_secrets.json
 $ sudo chmod 775 /var/www/FlaskApp/venv/catalog.db
 $ sudo chmod 777 /var/www/FlaskApp/venv/
 
+$ sudo chown -R ubuntu:www-data catalog
+$ sudo chmod -R g+s catalog
+(-R = recursive g+s keeps same group permissions for new files in that directory)
+
+addgroup sftp-users
+adduser youruser sftp-users
+adduser anotheruser sftp-users
+
+chown root /var/www
+chgrp sftp-users /var/www
+chmod 775 /var/www
+chmod g+s /var/www
+
+The g+s sets the "sticky bit" for the group, which correctly propagates the 
+group and the permissions to all files (they'll be 664) and directories (775) 
+as they are created. The number of directories that need 'www-data' as the 
+owner should be kept to a bare minimum.
+
+add the group (www-data) to the user (ubuntu) 
+$ sudo usermod -a -G www-data ubuntu
+you can check with $ groups username
+
+$ sudo chown ubuntu:www-data /var/www/
+$ sudo chown ubuntu:www-data /var/www/FlaskApp/
+$ sudo chown -R ubuntu:www-data /var/www/FlaskApp/venv/
+$ sudo chmod -R g+s .
+
+all new files and subdirectories created within the current directory inherit the group ID of the directory, rather than the primary group ID of the user who created the file. This will also be passed on to new subdirectories created in the current directory.
+
+g+s affects the file's group ID but does not affect the owner ID.
+
+<VirtualHost *>
+                ServerName glenallin.com
+                ServerAdmin glen@glenbland.com
+
+                WSGIDaemonProcess catalog user=ubuntu group=www-data threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages
+                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi
+                WSGIScriptReloading On
+
+		DocumentRoot /var/www/FlaskApp/venv
+
+		Alias /client_secrets.json /var/www/FlaskApp/venv/client_secrets.json
+
+                <Directory /var/www/FlaskApp/venv>
+			WSGIProcessGroup catalog
+               		WSGIApplicationGroup %{GLOBAL}
+                        Require all granted
+                </Directory>
+                ErrorLog /var/www/FlaskApp/venv/catalog-error.log
+                LogLevel warn
+                CustomLog /var/www/FlaskApp/venv/catalog-access.log combined
+</VirtualHost>
+
+$sudo nano /var/www/FlaskApp/venv/application.wsgi
+activate_this = '/var/www/FlaskApp/venv/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+import os
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, "/var/www/FlaskApp/venv/")
+from catalog import app as application
+application.run()
+
+------------------------------------------------------------------------
+I made the mistake of using sudo when I created virtualenv venv, which results in not being able
+to use pip within it. now I have to copy files out of venv, remove venv, and recreate it without sudo.
+
+$ source /var/www/FlaskApp/venv/bin/activate
+$ pip install Flask
+$ pip install sqlalchemy
+$ pip install oauth2client
+$ pip install requests
+
+----------------------------------------------------------------------
+
+https://modwsgi.readthedocs.io/en/develop/user-guides/quick-configuration-guide.html
