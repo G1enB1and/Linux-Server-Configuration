@@ -1052,3 +1052,23 @@ $ pip install requests
 ----------------------------------------------------------------------
 
 https://modwsgi.readthedocs.io/en/develop/user-guides/quick-configuration-guide.html
+
+the user that Apache runs as (www-data) must have READ access to both the WSGI 
+application script file and all the parent directories that contain it.
+
+Add root into the group www-data
+$ sudo usermod -a -G www-data root
+Change group for /var to www-data
+$ sudo chgrp www-data /var
+Set group permissions for /var to read write and execute
+$ sudo chmod g+rwxs /var
+$ sudo chgrp www-data /var/www/FlaskApp/venv
+$ sudo usermod -a -G www-data ubuntu
+$ sudo chgrp www-data /var/www/FlaskApp/venv/bin
+$ sudo chgrp www-data /var/www/FlaskApp/venv/lib
+$ sudo chgrp www-data /var/www/FlaskApp/venv/include
+$ sudo chgrp www-data /var/www/FlaskApp/venv/local
+$ sudo chmod g+rwxs /var/www/
+$ sudo chmod g+rwxs /var/www/FlaskApp
+$ sudo chmod g+rwxs /var/www/FlaskApp/venv
+

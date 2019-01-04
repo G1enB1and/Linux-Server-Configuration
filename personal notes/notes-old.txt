@@ -158,3 +158,12 @@ debug1: No more authentication methods to try.
 student@52.2.70.241: Permission denied (publickey).
 
 deleted Lightsail instance - starting over.
+-------------------------------------------------
+Anyone run into issues with key pair for grader user? I created a new user, gave it permission in my sudoers file. (grader ALL=(ALL:ALL) ALL. In gitbash, I used ssh-keygen to create my pair, copied and pasted the public key in to my graders /.ssh/authoried_keys file and did chmod 700 and chmod 644 /.ssh/authoried_keys. I'm able to ssh into my unbuntu lightsail account but my graders account asks me for my passphrse whixh ive verified, then it says pemission denied failed public key. Been a few hours and reaching out.
+
+Joel M.
+
+8:13 PM, Jan 3
+
+Profile photo
+I got it. When I create user from the ubuntu user. It creates the home /home/ubuntu. I simply chaged to /home/grader created the .ssh/authorized user file and got it. Always the small things.
