@@ -1033,8 +1033,7 @@ activate_this = '/var/www/FlaskApp/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 import os
 import sys
-import logging
-logging.basicConfig(stream=sys.stderr)
+sys.stdout = sys.stderr
 sys.path.insert(0, "/var/www/FlaskApp/venv/")
 from catalog import app as application
 application.run()
@@ -1071,4 +1070,8 @@ $ sudo chgrp www-data /var/www/FlaskApp/venv/local
 $ sudo chmod g+rwxs /var/www/
 $ sudo chmod g+rwxs /var/www/FlaskApp
 $ sudo chmod g+rwxs /var/www/FlaskApp/venv
+
+http://help.pythonanywhere.com/pages/NoSuchFileOrDirectory
+
+fix no such file error by changing reference to client_secrets.json to full path in linux style rather than windows style in python code or research above link for other fixes to this.
 
