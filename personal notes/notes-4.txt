@@ -56,4 +56,54 @@ root@ip:/var/www/flask# a2dissite 000-default.conf
 root@ip:/var/www/flask# service apache2 reload
 test in browser  - working
 
+----------------------------------------------------------------------------------
+https://www.youtube.com/watch?v=_80H2WIuA7w
+https://pythonprogramming.net/flask-web-development-tutorial/
+
+logged in as root
+$ sudo apt-get install apache2
+$ sudo apt-get install libapache2-mod-wsgi
+$ sudo a2enmod wsgi
+
+
+## /var/www/FlaskApp/FlaskApp/__init__.py
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def homepage():
+    return "Hello World"
+
+if __name__ == "__main__":
+    app.run()
+
+$ sudo apt-get install python-pip
+$ sudo pip install virtualenv
+$ sudo virtualenv venv
+
+the only time tyou need to activate venv is to install flask inside of it.
+
+$ source venv/bin/activate
+(venv)$ sudo pip install Flask
+$ deactivate
+
+## /etc/apache2/sites-available/FlaskApp.conf
+<VirtualHost *:80>
+		ServerName glenallin.com
+		ServerAdmin glen@glenbland.com
+		WSGIScriptAlias / /var/www/FlaskApp/flaskapp.wsgi
+		<Directory /var/www/FlaskApp/FlaskApp>
+			Require all granted
+		</Directory>
+		Alias /static /var/www/FlaskApp/FlaskApp/static
+		<Directory /var/www/FlaskApp/FlaskApp/static>
+			Require all granted
+		</Directory>
+		ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
+</VirtualHost
+
 
