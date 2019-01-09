@@ -93,17 +93,58 @@ $ deactivate
 <VirtualHost *:80>
 		ServerName glenallin.com
 		ServerAdmin glen@glenbland.com
+
 		WSGIScriptAlias / /var/www/FlaskApp/flaskapp.wsgi
+
 		<Directory /var/www/FlaskApp/FlaskApp>
 			Require all granted
 		</Directory>
+
 		Alias /static /var/www/FlaskApp/FlaskApp/static
+
 		<Directory /var/www/FlaskApp/FlaskApp/static>
 			Require all granted
 		</Directory>
-		ErrorLog /var/www/FlaskApp/venv/FlaskApp-error.log
-                LogLevel warn
-                CustomLog ${APACHE_LOG_DIR}/FlaskApp-access.log combined
-</VirtualHost
 
+		ErrorLog /var/www/FlaskApp/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+$ service apache2 reload
+$ sudo a2ensite FlaskApp
+
+## /var/www/FlaskApp/flaskapp.wsgi
+
+#!/usr/bin/python
+
+import sys
+import logging
+
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/FlaskApp/")
+
+from FlaskApp import app as application
+application.secret_key = "oewdhfowijhfoiqwf"
+
+$ sudo service apache2 restart
+
+/var/www/FlaskApp/FlaskApp
+venv
+templates
+static
+__init__.py
+
+/var/www/FlaskApp
+flaskapp.wsgi
+
+I had to change python code to reflect full path instead of relative for client_secrets and catalog.db
+
+('sqlite:///catalog.db')
+('sqlite:////var/www/FlaskApp/FlaskApp/catalog.db')
+
+
+site is working at glenallin.com, not glenallin.com:8000
+
+have to change google developer credentials and download new client_secrets.json
 

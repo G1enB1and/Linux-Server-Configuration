@@ -1075,3 +1075,99 @@ http://help.pythonanywhere.com/pages/NoSuchFileOrDirectory
 
 fix no such file error by changing reference to client_secrets.json to full path in linux style rather than windows style in python code or research above link for other fixes to this.
 
+
+-----------------------------------------------------------------------
+working, but not logging in with google
+
+<VirtualHost *:80>
+                ServerName glenallin.com
+                ServerAdmin glen@glenbland.com
+
+                WSGIScriptAlias / /var/www/FlaskApp/flaskapp.wsgi
+
+                <Directory /var/www/FlaskApp/FlaskApp>
+                        Require all granted
+                </Directory>
+
+                Alias /static /var/www/FlaskApp/FlaskApp/static
+
+                <Directory /var/www/FlaskApp/FlaskApp/static>
+                        Require all granted
+                </Directory>
+
+                ErrorLog /var/www/FlaskApp/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+------------------------------------------------------------------------
+
+<VirtualHost *:80>
+                ServerName glenallin.com
+                ServerAdmin glen@glenbland.com
+
+                WSGIScriptAlias / /var/www/FlaskApp/flaskapp.wsgi
+		WSGIDaemonProcess FlaskApp user=www-data group=www-data threads=5
+		WSGIProcessGroup FlaskApp
+		WSGIApplicationGroup %{GLOBAL}
+
+                <Directory /var/www/FlaskApp/FlaskApp>
+                        Require all granted
+                </Directory>
+
+                Alias /static /var/www/FlaskApp/FlaskApp/static
+		Alias /catalog.db /var/www/FlaskApp/FlaskApp/catalog.db
+		Alias /database_setup.py /var/www/FlaskApp/FlaskApp/database_setup.py
+
+                <Directory /var/www/FlaskApp/FlaskApp/static>
+                        Require all granted
+                </Directory>
+
+                ErrorLog /var/www/FlaskApp/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+--------------------------------------------------------------------------
+
+I changed python code in __init__.py and database_setup.py to replace relative paths
+with full linux path to client_secrets.json (found at top, but also in gconnect function) 
+and catalog.db (in both files), and path to downloaduserpic.
+
+that fixed several issues, including login.
+
+I am currently unable to edit the database through the app as deployed by wsgi, 
+but I am able to do so if I run python __init__.py and browse to :8000.
+Upon making a sucessful edit this way I get response http/1.1 302 (which roughly means temporary redirect)
+
+might have to change
+#!/usr/bin/python
+to
+#!/usr/bin/env python2.7
+
+---------------------------------------------------------------------------
+* Install PostgreSQ package: `sudo apt-get install postgresql postgresql-contrib`
+
+* Configure PostgreSQL: `sudo -u postgres psql postgres`
+
+* Create database user catalog – limited permission-
+
+```
+
+postgres=# CREATE USER catalog WITH PASSWORD ‘password’;
+
+postgres=# ALTER USER catalog CREATEDB;
+
+postgres=# CREATE DATABASE catalog with OWNER catalog;
+
+postgres=# \c catalog
+
+catalog=# REVOKE ALL ON SCHEMA public FROM public;
+
+catalog=# GRANT ALL ON SCHEMA public TO catalog;
+
+catalog=# \q
+
+```
+------------------------------------------------------------------------------
+
+
