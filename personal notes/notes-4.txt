@@ -148,3 +148,63 @@ site is working at glenallin.com, not glenallin.com:8000
 
 have to change google developer credentials and download new client_secrets.json
 
+---------------------------------------------------------------------------
+
+Hello
+
+regarding to your files structure the (venv) folder should be in /var/www/FlaskApp/
+
+about DB try del catalog.db and run database_setup.py again
+
+be sure update this line of code in both __init__.py and database_setup.py
+
+engine = create_engine('sqlite:///var/www/FlaskApp/FlaskApp/catalogdb.db')
+
+-----------------------------------------------------------------------------
+
+
+We recommend postgresql, but it's okay to use sqlite. And, yes 
+"the only line of code needed to change from sqlite to psql in python is the 
+engine = create_engine('...') line ".
+
+
+To access SQLite use full path. e.g.: 
+engine = create_engine('sqlite:////var/www/FlaskApp/FlaskApp/catalog.db')
+
+
+To copy the contents of sqlite.db into the PostgreSQL database Use PgLoader:
+
+https://pgloader.readthedocs.io/en/latest/pgloader.html
+$ apt install pgloader
+
+
+$ sudo su catalog -c 'pgloader /path/to/sqlite.db postgresql://catuser:catpass@/catalog'
+
+so...
+
+$ sudo su catalog -c 'pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@/catalog'
+no ubuntu user named catalog, only postgres user named catalog - doesn't work
+
+$ pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@/catalog
+   Failed to connect to pgsql at :UNIX (port 5432) as user "catalog": Database error 28000:
+   Peer authentication failed for user "catalog".
+
+$ pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@localhost/catalog
+   Failed to connect to pgsql at "localhost" (port 5432) as user "catalog": Data
+   base error 28P01: password authentication failed for user "catalog"
+
+$ sudo -u postgres psql catalog -c 'pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@localhost/catalog'
+   ERROR:  syntax error at or near "pgloader"
+   LINE 1: pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db pos...
+
+$ sudo -u postgres psql catalog
+$ pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@localhost/catalog
+
+If for some reason you are not prompted for a password when issuing these commands, 
+you can use the -W option
+$ psql -d databasename -U username -W
+
+pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:mypassword@127.0.0.1/catalog
+
+
+

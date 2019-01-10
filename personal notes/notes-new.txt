@@ -1153,7 +1153,7 @@ to
 
 ```
 
-postgres=# CREATE USER catalog WITH PASSWORD ‘password’;
+postgres=# CREATE USER catalog WITH PASSWORD ‘mypassword’;
 
 postgres=# ALTER USER catalog CREATEDB;
 
@@ -1168,6 +1168,19 @@ catalog=# GRANT ALL ON SCHEMA public TO catalog;
 catalog=# \q
 
 ```
+DONE - 1/9/2019
 ------------------------------------------------------------------------------
 
+$ apt install pgloader
+$ sudo -u postgres psql catalog
+$ pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:password@localhost/catalog
+
+try using host network connection to avoid socket problems
+psql user_name  -h 127.0.0.1 -d db_name
+
+$ psql catalog -h 127.0.0.1 -d catalog -W
+mypassword
+-CONNECTED
+
+$ psql catalog -h 127.0.0.1 -d catalog -W -c 'pgloader sqlite:////var/www/FlaskApp/FlaskApp/catalog.db postgresql://catalog:mypassword@127.0.0.1/catalog'
 
