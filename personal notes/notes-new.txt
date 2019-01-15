@@ -1152,12 +1152,17 @@ to
 * Create database user catalog – limited permission-
 
 ```
+SELECT * FROM pg_stat_activity WHERE datname = 'catalog';
+postgres=# SELECT pg_terminate_backend (9061) FROM pg_stat_activity WHERE datname = 'catalog';
+DROP DATABASE catalog;
+\list
+
 
 postgres=# CREATE USER catalog WITH PASSWORD ‘mypassword’;
 
 postgres=# ALTER USER catalog CREATEDB;
 
-postgres=# CREATE DATABASE catalog with OWNER catalog;
+postgres=# CREATE DATABASE catalog WITH OWNER catalog;
 
 postgres=# \c catalog
 
@@ -1223,4 +1228,77 @@ sqlalchemy.exc.DataError: (psycopg2.DataError) value too long for type character
  
 it did connect to the postgres catalog database and start to write to it. It has all tables and columns, but only 1 row in category_items.
 
+I deteleted the catalog database, recreated it. changed the python code for database_setup.py 
+from 250 to 500 for description and reran populate_catalog.py. This time I got a different but similar error
+pointing to varchar(8) and I noticed at least one dollar amount higher than 8 digits, so
+I changed it to 15 and repeated the process of deleting the database, creating it, populating it.
+This time it completed with no errors!!!
 
+replaced user with us3r and User with Us3r where appropriate in __init__.py
+ran python __init__.py no errors!!!
+restarted apache, test browser. Internal server error.
+
+error.log looks like it probably has to do with the arguments passed to psql not the same as sqlite.
+going to try to remove the args.
+
+Change From:
+engine = create_engine('postgresql://catalog:mypassword@127.0.0.1/catalog',
+                       connect_args={'check_same_thread': False},
+                       poolclass=SingletonThreadPool)
+
+To:
+engine = create_engine('postgresql://catalog:mypassword@127.0.0.1/catalog')
+
+app now loads, but will not log into google.
+
+-----------------------------------------------------------------------------------
+
+ERROR:flask.app:Exception on /gconnect [POST]
+  File "/var/www/FlaskApp/FlaskApp/__init__.py", line 88, in gconnect
+    if result['us3r_id'] != gplus_id:
+KeyError: 'us3r_id'
+
+the code here is:
+gplus_id = credentials.id_token['sub']
+if result['us3r_id'] != gplus_id:
+        response = make_response(
+            json.dumps("Token's user ID doesn't match given user ID."),
+                       401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+
+Python raises a KeyError whenever a dict() object is requested 
+(using the format a = adict[key]) and the key is not in the dictionary.
+
+If you don't want to have an exception but would rather a default value used instead, 
+you can use the get() method:
+
+
+Toggle line numbers
+   1 default = 'Scruffy'
+   2 a = adict.get('dogname', default)
+Even more handy is somewhat controversially-named setdefault(key, val) 
+which sets the value of the key only if it is not already in the dict, 
+and returns that value in any case.
+
+
+after putting code inside a try: except: block I get:
+
+TypeError: The view function did not return a valid response. 
+The function either returned None or ended without a return statement.
+
+I deleted that block of code for now and it moved past it.
+log shows: Exception error while getting user id.
+
+next error:
+
+File "/var/www/FlaskApp/FlaskApp/templates/show-item.html", line 103, in top-level template code
+  <div class="creater__name">Created By: {{user.name}}</div>
+UndefinedError: 'user' is undefined
+
+I changed show-item.html template to use us3r instead of user for name, email, and pic.
+also changed static/user_pic_1.jpg to us3r_pic_1.jpg
+
+
+now everything is working.

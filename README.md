@@ -246,7 +246,18 @@ the end result. You can see everything I did in the notes files.
 ----------------------------------------------------------------------  
   
 Install PostgreSQL  
-$ sudo apt-get install postgresql  
+$ sudo apt-get install postgresql postgresql-contrib  
+Login to postgresql as default user
+$ sudo -u postgres psql
+Create catalog user
+postgres=# CREATE USER catalog WITH PASSWORD ‘mypassword’;
+postgres=# ALTER USER catalog CREATEDB;
+Create catalog database
+postgres=# CREATE DATABASE catalog WITH OWNER catalog;
+postgres=# \c catalog
+catalog=# REVOKE ALL ON SCHEMA public FROM public;
+catalog=# GRANT ALL ON SCHEMA public TO catalog;
+catalog=# \q
   
 ----------------------------------------------------------------------  
   
@@ -263,11 +274,10 @@ Setup venv virtual environment:
 $ cd /var/www/FlaskApp  
 $ sudo pip install virtualenv  
 $ sudo virtualenv venv  
-(venv can be replaced with any name)  
 $ source venv/bin/activate  
 $ sudo pip install Flask  
 $ pip install sqlalchemy  
-$ pip install oath2client  
+$ pip install oauth2client  
 $ pip install requests 
   
 ----------------------------------------------------------------------  
@@ -293,52 +303,54 @@ $ sudo mv index.html apache2index.html
 $ sudo mv myapp.wsgi helloworld.wsgi  
 
 Move files so new location is not a git repository  
-$ sudo mv /home/ubuntu/gitrepo/catalog/vagrant/catalog /var/www/FlaskApp/venv   
+$ sudo mv /home/ubuntu/gitrepo/catalog/vagrant/catalog /var/www/FlaskApp/FlaskApp/  
   
 ----------------------------------------------------------------------  
   
-Create application.wsgi  
-$ sudo touch /var/www/html/catalog/application.wsgi  
-$ sudo nano /var/www/html/catalog/application.wsgi  
+Create flaskapp.wsgi  
+$ sudo touch /var/www/FlaskApp/flaskapp.wsgi  
+$ sudo nano /var/www/FlaskApp/flaskapp.wsgi  
   
-import os
+#!/usr/bin/python
+
 import sys
 import logging
+
 logging.basicConfig(stream=sys.stderr)
-sys.stdout = sys.stderr
-sys.path.insert(0,"/var/www/FlaskApp/venv")
-from catalog import app as application
-application.run()
+sys.path.insert(0,"/var/www/FlaskApp/")
+
+from FlaskApp import app as application
+application.secret_key = "redacted"
   
 write file and exit (ctrl o, enter, ctrl x)  
   
 ----------------------------------------------------------------------  
   
-Create catalog.conf in sites-available  
+Create FlaskApp.conf in sites-available  
 $ cd /etc/apache2/sites-available/  
-$ sudo touch catalog.conf  
-$ sudo nano catalog.conf  
+$ sudo touch FlaskApp.conf  
+$ sudo nano FlaskApp.conf  
   
-<VirtualHost *>  
-                ProxyPreserveHost On  
-                ProxyRequests Off  
-                ServerName www.glenallin.com  
-                ServerAlias glenallin.com  
-                ProxyPass / http://23.20.77.227:8000/  
-                ProxyPassReverse / http://23.20.77.227:8000/  
-                ServerAdmin glen@glenbland.com  
-                WSGIDaemonProcess catalog user=ubuntu group=ubuntu threads=5 python-path=/var/www/FlaskApp/venv:/var/www/FlaskApp/venv/lib/python2.7/site-packages  
-                WSGIScriptAlias / /var/www/FlaskApp/venv/application.wsgi  
-                <Directory /var/www/FlaskApp/venv>  
-					WSGIProcessGroup catalog  
-					WSGIApplicationGroup %{GLOBAL}  
-					WSGIScriptReloading On  
-					Require all granted  
-                </Directory>  
-                ErrorLog /var/www/FlaskApp/venv/catalog-error.log  
-                LogLevel warn  
-                CustomLog ${APACHE_LOG_DIR}/catalog-access.log combined  
-</VirtualHost>  
+<VirtualHost *:80>
+		ServerName glenallin.com
+		ServerAdmin glen@glenbland.com
+
+		WSGIScriptAlias / /var/www/FlaskApp/flaskapp.wsgi
+
+		<Directory /var/www/FlaskApp/FlaskApp>
+			Require all granted
+		</Directory>
+
+		Alias /static /var/www/FlaskApp/FlaskApp/static
+
+		<Directory /var/www/FlaskApp/FlaskApp/static>
+			Require all granted
+		</Directory>
+
+		ErrorLog /var/www/FlaskApp/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
   
 Write file and exit (ctrl o, enter, ctrl x)  
 Restart apache2  
@@ -369,9 +381,21 @@ $ sudo apache2ctl restart
 Set Permissions  
 $ sudo chmod -R 755 /var/www  
 $ sudo chmod 755 /var/www/FlaskApp/venv/  
-$ sudo chmod 756 /var/www/FlaskApp/venv/catalog.db  
+and all other directories
+$ sudo chmod 756 /var/www/FlaskApp/FlaskApp/static/us3r_pic_1.jpg
+and all other files
 
-$ sudo chown www-data:www-data /var/www/FlaskApp/venv/catalog.db
+$ sudo chown www-data:www-data all files and directories in project
+  
+----------------------------------------------------------------------  
+  
+Edit python code in the following ways:  
+Change sqlite to postgresql in engine for __init__.py, database_setup.py, and populate_catalog.py  
+Change relative paths to full path in unix form.  
+This had to be done for path to database, user pic location, and client_secrets.json  
+Change all instances of user/User to something else, because that is reserved for psql and will cause errors.  
+I used us3r instead.  
+this also needed to be done in show-item.html and for us3r_pic_1.jpg for consistency.
   
 ----------------------------------------------------------------------  
   
